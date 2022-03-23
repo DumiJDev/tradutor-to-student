@@ -1,19 +1,19 @@
-package com.dpcompany.tradutor;
+package com.dpcompany.tradutor.view;
 
+import com.dpcompany.tradutor.controller.ControllerTradutor;
 import com.jtattoo.plaf.acryl.AcrylLookAndFeel;
 import javax.swing.JTextField;
 
 /**
- *
  * @author Dumildes Paulo
  */
 @SuppressWarnings("serial")
 public class TradutorView extends javax.swing.JFrame {
 
-    /**
-     * Creates new form TradutorView
-     */
+    private final ControllerTradutor controllerTradutor;
+
     public TradutorView() {
+        controllerTradutor = new ControllerTradutor();
         initComponents();
     }
 
@@ -29,10 +29,10 @@ public class TradutorView extends javax.swing.JFrame {
         botaoT = new javax.swing.JButton();
         labelFrom = new javax.swing.JLabel();
         comboFrom = new javax.swing.JComboBox<>();
-        ControllerTradutor.Idioma(comboFrom);
+        controllerTradutor.Idioma(comboFrom);
         labelTo = new javax.swing.JLabel();
         comboTo = new javax.swing.JComboBox<>();
-        ControllerTradutor.Idioma(comboTo);
+        controllerTradutor.Idioma(comboTo);
         comboTo.removeItemAt(comboFrom.getSelectedIndex());
         jMenuBar1 = new javax.swing.JMenuBar();
         file = new javax.swing.JMenu();
@@ -75,7 +75,7 @@ public class TradutorView extends javax.swing.JFrame {
         textFrom.setLineWrap(true);
         textFrom.setRows(5);
         textFrom.setWrapStyleWord(true);
-        textFrom.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        textFrom.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         textFrom.setMargin(new java.awt.Insets(0, 0, 0, 4));
         textFrom.setName(""); // NOI18N
         jScrollPane2.setViewportView(textFrom);
@@ -123,7 +123,11 @@ public class TradutorView extends javax.swing.JFrame {
         addMenu.setText("Adicionar...");
 
         addIdioma.setText("idioma");
-        addIdioma.setEnabled(false);
+        addIdioma.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                addIdiomaMousePressed(evt);
+            }
+        });
         addMenu.add(addIdioma);
 
         addPalavra.setText("palavra");
@@ -195,12 +199,14 @@ public class TradutorView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void botaoTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botaoTActionPerformed
-        ControllerTradutor.traduz((String) comboFrom.getSelectedItem(), (String) comboTo.getSelectedItem(), textFrom, textTo);
+        controllerTradutor.traduz((String) comboFrom.getSelectedItem(), (String) comboTo.getSelectedItem(), textFrom, textTo
+        );
     }//GEN-LAST:event_botaoTActionPerformed
 
     private void comboFromActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboFromActionPerformed
         comboTo.removeAllItems();
-        ControllerTradutor.Idioma(comboTo);
+        controllerTradutor.Idioma(comboTo
+        );
         comboTo.removeItemAt(comboFrom.getSelectedIndex());
     }//GEN-LAST:event_comboFromActionPerformed
 
@@ -239,29 +245,61 @@ public class TradutorView extends javax.swing.JFrame {
         dialog.setTitle("Adicionar palavra");
         dialog.setResizable(false);
 
-        addId.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent arg0) {
-                if (tab1.getText().equals("") && tab2.getText().equals("")) {
-                    javax.swing.JOptionPane.showMessageDialog(null, "Um ou mais campos vazio(s)", "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
-                } else {
-                    ControllerTradutor.inserir((String) comboFrom.getSelectedItem(), (String) comboTo.getSelectedItem(), tab1.getText(), tab2.getText());
-                    javax.swing.JOptionPane.showMessageDialog(null, "Adicionado com sucesso!", "Palavra adicionada", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                }
-                tab1.setText("");
-                tab2.setText("");
+        addId.addActionListener((java.awt.event.ActionEvent arg0) -> {
+            if (tab1.getText().equals("") && tab2.getText().equals("")) {
+                javax.swing.JOptionPane.showMessageDialog(null, "Um ou mais campos vazio(s)", "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+            } else {
+                controllerTradutor.inserir((String) comboFrom.getSelectedItem(), (String) comboTo.getSelectedItem(), tab1.getText(), tab2.getText()
+                );
+                javax.swing.JOptionPane.showMessageDialog(null, "Adicionado com sucesso!", "Palavra adicionada", javax.swing.JOptionPane.INFORMATION_MESSAGE);
             }
+            tab1.setText("");
+            tab2.setText("");
         });
 
-        cancelId.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent arg0) {
-                tab1.setText("");
-                tab2.setText("");
-                dialog.dispose();
-            }
+        cancelId.addActionListener((java.awt.event.ActionEvent arg0) -> {
+            tab1.setText("");
+            tab2.setText("");
+            dialog.dispose();
         });
     }//GEN-LAST:event_addPalavraMousePressed
+
+    private void addIdiomaMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_addIdiomaMousePressed
+        javax.swing.JDialog dialog = new javax.swing.JDialog();
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(1, 1));
+        javax.swing.JTextField tab1 = new javax.swing.JTextField();
+        javax.swing.JButton addId = new javax.swing.JButton("Add");
+
+        tab1.setBackground(new java.awt.Color(18, 28, 51));
+        tab1.setForeground(new java.awt.Color(255, 255, 255));
+        tab1.setFont(new java.awt.Font("Times New Romam", java.awt.Font.PLAIN, 14));
+        tab1.setHorizontalAlignment(JTextField.CENTER);
+        addId.setBackground(new java.awt.Color(51, 51, 51));
+        addId.setForeground(new java.awt.Color(255, 255, 255));
+
+        panel.add(tab1);
+        panel.add(addId);
+
+        panel.setBorder(new javax.swing.border.TitledBorder("Adicionar Idioma"));
+
+        dialog.add(panel);
+        dialog.setVisible(true);
+        dialog.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
+        dialog.setSize(350, 150);
+        dialog.setTitle("Adicionar Idioma");
+        dialog.setResizable(false);
+
+        addId.addActionListener((java.awt.event.ActionEvent arg0) -> {
+            if (tab1.getText().equals("")) {
+                javax.swing.JOptionPane.showMessageDialog(null, "campo vazio", "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+            } else {
+                controllerTradutor.inserirIdioma(tab1.getText());
+                javax.swing.JOptionPane.showMessageDialog(null, "Adicionado com sucesso!", "Idioma adicionado", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            }
+            tab1.setText("");
+        });
+
+    }//GEN-LAST:event_addIdiomaMousePressed
 
     /**
      * @param args the command line arguments
@@ -270,22 +308,19 @@ public class TradutorView extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
 
-                    javax.swing.UIManager.setLookAndFeel(new AcrylLookAndFeel());
+            javax.swing.UIManager.setLookAndFeel(new AcrylLookAndFeel());
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(TradutorView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new TradutorView().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new TradutorView().setVisible(true);
         });
     }
 

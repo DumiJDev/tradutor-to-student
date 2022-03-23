@@ -29,8 +29,10 @@
                 <MenuItem class="javax.swing.JMenuItem" name="addIdioma">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="idioma"/>
-                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="addIdiomaMousePressed"/>
+                  </Events>
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="addPalavra">
                   <Properties>

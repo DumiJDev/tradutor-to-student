@@ -1,22 +1,31 @@
-package com.dpcompany.tradutor;
+package com.dpcompany.tradutor.dao;
 
+import java.io.StreamCorruptedException;
 import java.sql.*;
 import javax.swing.JOptionPane;
 
 /**
  * @author Dumildes Paulo
  */
-public abstract class DAOTradutor {
+public class DAOTradutor {
 
-    private static Connection con = null;
-    private static PreparedStatement stm = null;
-    private static ResultSet rs = null;
-    private static String url = "jdbc:sqlite:LTDP.db";
-    private static Integer I;
+    private Connection con = null;
+    private PreparedStatement stm = null;
+    private ResultSet rs = null;
+    private final String URL;
+    private Integer I;
 
-    private static boolean abrirBanco(String url) {
+    private String from, to;
+
+    public DAOTradutor() {
+        URL = "jdbc:sqlite:LTDP.db";
+        from = "pt";
+        to = "en";
+    }
+
+    private boolean abrirBanco(String URL) {
         try {
-            con = DriverManager.getConnection(url);
+            con = DriverManager.getConnection(URL);
             return true;
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, ex.getClass().getName() + ": " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -24,7 +33,7 @@ public abstract class DAOTradutor {
         return false;
     }
 
-    private static boolean fecharBanco() {
+    private boolean fecharBanco() {
         try {
             con.close();
             return true;
@@ -34,53 +43,56 @@ public abstract class DAOTradutor {
         return false;
     }
 
-    private static boolean criarTabela(String table) {
-        if (abrirBanco(url))
-			try {
-            String sql = "create table " + table + "(id integer primary key not null, palavra text not null);";
-            stm = con.prepareStatement(sql);
-            stm.execute();
-            return true;
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Não é possível inserir contacto!\nContacte: DP Company", "Erro", JOptionPane.ERROR_MESSAGE);
+    private boolean criarTabela(String table) {
+        if (abrirBanco(URL)) {
+            try {
+                String sql = String.format("create table %s(id integer primary key not null, palavra text not null);", table);
+                stm = con.prepareStatement(sql);
+                stm.execute();
+                con.commit();
+                return true;
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(null, "Não é possível inserir contacto!" +
+                        "\nContacte: DP Company", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
         }
         return false;
     }
 
-    public static String traduzDAO(String from, String to, String str) {
+    public String traduz(String str) {
         String found = null;
-        int i = 0, foun;
-        String sql = "select palavra from " + to + " where id = ("
-                + "select id from " + from + " where palavra like '" + str + "');";
+        int i = 0;
+        String sql = String.format("select palavra from %s where id = (select id from %s where palavra like ?);", to, from);
 
-        if (abrirBanco(url))
+        if (abrirBanco(URL)) {
             try {
-
-            stm = con.prepareStatement(sql);
-            rs = stm.executeQuery();
-            while (rs.next()) {
-                found = rs.getString("palavra");
-                i++;
-            }
-            I = i;
-            stm.close();
-            rs.close();
-
-        } catch (SQLException t) {
-            try {
-
-                if (criarTabela(from) && criarTabela(to)) {
-                    stm = con.prepareStatement(sql);
-                    rs = stm.executeQuery();
-                    while (rs.next()) {
-                        found = rs.getString("palavra");
-                        i++;
-                    }
-                    I = i;
-                    stm.close();
-                    rs.close();
+                stm = con.prepareStatement(sql);
+                stm.setString(1, str);
+                rs = stm.executeQuery();
+                while (rs.next()) {
+                    found = rs.getString("palavra");
+                    i++;
                 }
-            } catch (SQLException ex) {
+                I = i;
+                con.commit();
+                stm.close();
+                rs.close();
+            } catch (SQLException t) {
+                try {
+
+                    if (criarTabela(from) && criarTabela(to)) {
+                        stm = con.prepareStatement(sql);
+                        rs = stm.executeQuery();
+                        while (rs.next()) {
+                            found = rs.getString("palavra");
+                            i++;
+                        }
+                        I = i;
+                        stm.close();
+                        rs.close();
+                    }
+                } catch (SQLException ex) {
+                }
             }
         }
         fecharBanco();
@@ -92,44 +104,64 @@ public abstract class DAOTradutor {
         return found;
     }
 
-    public static boolean insereDAO(String tab1, String str1) {
-        if (abrirBanco(url))
+    public boolean insereDAO(String tab1, String str1) {
+        if (abrirBanco(URL)) {
             try {
-            String sql = "insert into " + tab1 + "(palavra) values(?);";
-            stm = con.prepareStatement(sql);
-            stm.setString(1, str1);
-            stm.execute();
-            if (fecharBanco()) {
-                return true;
+                String sql = String.format("insert into %s(palavra) values(?);", tab1);
+                stm = con.prepareStatement(sql);
+                stm.setString(1, str1);
+                stm.execute();
+                con.commit();
+                if (fecharBanco()) {
+                    return true;
+                }
+            } catch (SQLException ignored) {
+            } finally {
+                fecharBanco();
             }
-        } catch (SQLException ex) {
         }
-        fecharBanco();
+
         return false;
     }
 
-    public static Integer getI() {
+    public Integer getI() {
         return I;
     }
 
-    public static String[] idioma() {
-        String[] lingua = new String[20];
+    public String[] idioma() {
+        String[] lingua = new String[30];
         int i = 0;
-        if (abrirBanco(url))
+        if (abrirBanco(URL)) {
             try {
-            stm = con.prepareStatement("select nome from idioma order by nome;");
-            rs = stm.executeQuery();
-            while (rs.next()) {
-                lingua[i] = rs.getString("nome");
-                i++;
-            }
-            stm.close();
-            rs.close();
+                stm = con.prepareStatement("select nome from idioma order by nome;");
+                rs = stm.executeQuery();
+                while (rs.next()) {
+                    lingua[i] = rs.getString("nome");
+                    i++;
+                }
+                con.commit();
+                stm.close();
+                rs.close();
 
-        } catch (SQLException e) {
+            } catch (SQLException e) {
+            } finally {
+                fecharBanco();
+            }
         }
-        fecharBanco();
+
+        if (i < 1) {
+            lingua[0] = "";
+        }
+
         return lingua;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
     }
 
 }

@@ -1,2 +1,6 @@
-package com.dpcompany.tradutor.model;public class Palavra {
+package com.dpcompany.tradutor.model;
+
+public class Palavra {
+    private String valor;
+
 }
